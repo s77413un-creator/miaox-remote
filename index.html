@@ -17,19 +17,14 @@
     --vibe: #f9a8d4;
     --danger: #ef4444;
     color-scheme: dark;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'SF Pro Rounded', 'PingFang SC', system-ui, sans-serif;
+    font-family: 'PingFang SC', system-ui, sans-serif;
     min-height: 100dvh;
-    padding-top: calc(var(--safe-top) + 24px);
-    padding-bottom: calc(var(--safe-bottom) + 24px);
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 32px 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -40,7 +35,6 @@
     text-align: center;
     font-size: 22px;
     font-weight: 700;
-    letter-spacing: -0.5px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -52,17 +46,14 @@
     gap: 8px;
     font-size: 13px;
     color: var(--muted);
-    transition: color 0.3s;
   }
   .dot {
     width: 8px; height: 8px;
     border-radius: 50%;
     background: var(--muted);
-    transition: background 0.3s;
     flex-shrink: 0;
   }
-  .dot.connected { background: #4ade80; box-shadow: 0 0 8px #4ade8088; }
-  .status-pill.connected { color: #4ade80; }
+  .dot.on { background: #4ade80; box-shadow: 0 0 8px #4ade8088; }
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -72,46 +63,22 @@
     flex-direction: column;
     gap: 16px;
   }
-  .card-label {
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .slider-row {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .slider-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-  .slider-name {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .slider-val {
-    font-size: 20px;
-    font-weight: 700;
-    min-width: 48px;
-    text-align: right;
-  }
+  .slider-row { display: flex; flex-direction: column; gap: 10px; }
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .slider-name { font-size: 15px; font-weight: 600; }
+  .slider-val { font-size: 20px; font-weight: 700; min-width: 48px; text-align: right; }
   .slider-val.suck { color: var(--suck); }
   .slider-val.vibe { color: var(--vibe); }
   input[type=range] {
     -webkit-appearance: none;
-    width: 100%;
-    height: 8px;
-    border-radius: 4px;
-    outline: none;
-    cursor: pointer;
+    width: 100%; height: 8px;
+    border-radius: 4px; outline: none; cursor: pointer;
   }
   input[type=range].suck {
-    background: linear-gradient(to right, var(--suck) var(--pct, 0%), var(--border) var(--pct, 0%));
+    background: linear-gradient(to right, var(--suck) var(--pct,0%), var(--border) var(--pct,0%));
   }
   input[type=range].vibe {
-    background: linear-gradient(to right, var(--vibe) var(--pct, 0%), var(--border) var(--pct, 0%));
+    background: linear-gradient(to right, var(--vibe) var(--pct,0%), var(--border) var(--pct,0%));
   }
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -120,59 +87,40 @@
     background: var(--text);
     box-shadow: 0 2px 8px #0006;
   }
-  .btn-row {
-    display: flex;
-    gap: 12px;
-  }
+  .btn-row { display: flex; gap: 12px; }
   button {
-    flex: 1;
-    padding: 16px;
-    border: none;
-    border-radius: 16px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
+    flex: 1; padding: 16px; border: none;
+    border-radius: 16px; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
     transition: opacity 0.15s, transform 0.1s;
-    font-family: inherit;
   }
-  button:active { transform: scale(0.97); opacity: 0.85; }
+  button:active { transform: scale(0.97); }
   button:disabled { opacity: 0.35; cursor: not-allowed; }
-  .btn-connect {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff;
-  }
-  .btn-stop {
-    background: var(--danger);
-    color: #fff;
-    font-size: 18px;
-  }
-  .presets {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
+  .btn-ble { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn-stop { background: var(--danger); color: #fff; font-size: 18px; }
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .preset-btn {
-    background: var(--border);
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 14px 10px;
-    border-radius: 14px;
+    background: var(--border); color: var(--text);
+    font-size: 13px; font-weight: 600;
+    padding: 14px 10px; border-radius: 14px;
   }
-  .preset-btn:disabled { opacity: 0.3; }
-  .footer {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
+  .log {
+    font-size: 11px; color: var(--muted);
+    text-align: center; min-height: 16px;
   }
 </style>
 </head>
 <body>
 <div class="title">🐱 喵喜遥控</div>
-<div class="status-pill" id="statusPill">
-  <div class="dot" id="dot"></div>
-  <span id="statusText">未连接</span>
+
+<div class="status-pill">
+  <div class="dot" id="dotBle"></div>
+  <span id="txtBle">蓝牙未连接</span>
+  &nbsp;·&nbsp;
+  <div class="dot" id="dotWs"></div>
+  <span id="txtWs">服务器未连接</span>
 </div>
+
 <div class="card">
   <div class="slider-row">
     <div class="slider-header">
@@ -189,8 +137,8 @@
     <input type="range" class="vibe" id="vibeSlider" min="0" max="100" value="0" disabled>
   </div>
 </div>
+
 <div class="card">
-  <div class="card-label">快捷预设</div>
   <div class="presets">
     <button class="preset-btn" onclick="preset(30,0)" disabled id="p1">轻柔 🌸</button>
     <button class="preset-btn" onclick="preset(50,20)" disabled id="p2">温柔 ✨</button>
@@ -198,133 +146,131 @@
     <button class="preset-btn" onclick="preset(80,40)" disabled id="p4">波浪 💜</button>
   </div>
 </div>
+
 <div class="btn-row">
-  <button class="btn-connect" id="connectBtn" onclick="toggleConnect()">连接喵喜</button>
+  <button class="btn-ble" id="bleBtn" onclick="toggleBle()">连接喵喜</button>
   <button class="btn-stop" id="stopBtn" onclick="stopAll()" disabled>停</button>
 </div>
-<div class="footer">滑动调节 · 随时点停</div>
+
+<div class="log" id="log"></div>
+
 <script>
 const SERVICE_UUID = '0000ddd1-0000-1000-8000-00805f9b34fb';
-const CHAR_WRITE_UUID = '0000ddd1-0000-1000-8000-00805f9b34fb';
-let device = null, characteristic = null, timer = null;
+const CHAR_UUID    = '0000ddd1-0000-1000-8000-00805f9b34fb';
+const WS_URL = 'wss://miaox-remote-production.up.railway.app';
+
+let device = null, char = null, bleTimer = null;
 let curSuck = 0, curVibe = 0;
-function checksum(...bytes) {
-  return bytes.reduce((a, b) => a + b, 0) & 0xFF;
+let ws = null;
+
+function log(msg) { document.getElementById('log').textContent = msg; }
+
+// ── 校验 & 指令 ──
+function cs(...b) { return b.reduce((a,v)=>a+v,0) & 0xFF; }
+function cmdBytes(s,v) {
+  return new Uint8Array([0xAA,0x08,0x03,s,v,0x03, cs(0xAA,0x08,0x03,s,v,0x03)]);
 }
-function buildCmd(suck, vibe) {
-  const cs = checksum(0xAA, 0x08, 0x03, suck, vibe, 0x03);
-  return new Uint8Array([0xAA, 0x08, 0x03, suck, vibe, 0x03, cs]);
+function stopBytes() {
+  return new Uint8Array([0xAA,0x0F,0x02,0x00,0x00, cs(0xAA,0x0F,0x02,0x00,0x00)]);
 }
-function buildStop() {
-  const cs = checksum(0xAA, 0x0F, 0x02, 0x00, 0x00);
-  return new Uint8Array([0xAA, 0x0F, 0x02, 0x00, 0x00, cs]);
-}
-async function send(data) {
-  if (!characteristic) return;
-  try { await characteristic.writeValueWithoutResponse(data); } catch(e) {}
-}
-function startLoop() {
-  if (timer) clearInterval(timer);
-  timer = setInterval(() => {
-    if (curSuck === 0 && curVibe === 0) return;
-    send(buildCmd(curSuck, curVibe));
-  }, 250);
-}
-async function toggleConnect() {
-  if (device && device.gatt.connected) { await disconnect(); return; }
+
+// ── 蓝牙 ──
+async function toggleBle() {
+  if (device && device.gatt.connected) { bleOff(); return; }
   try {
     device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [SERVICE_UUID]
     });
-    device.addEventListener('gattserverdisconnected', onDisconnect);
+    device.addEventListener('gattserverdisconnected', bleOff);
     const gatt = await device.gatt.connect();
-    const service = await gatt.getPrimaryService(SERVICE_UUID);
-    characteristic = await service.getCharacteristic(CHAR_WRITE_UUID);
-    setConnected(true);
-    startLoop();
-  } catch(e) {
-    setConnected(false);
-    console.error(e);
-  }
+    const svc  = await gatt.getPrimaryService(SERVICE_UUID);
+    char = await svc.getCharacteristic(CHAR_UUID);
+    setBle(true);
+    startBleLoop();
+    connectWs();
+  } catch(e) { log('蓝牙错误：' + e.message); setBle(false); }
 }
-async function disconnect() {
-  if (timer) { clearInterval(timer); timer = null; }
-  await send(buildStop());
-  if (device && device.gatt.connected) device.gatt.disconnect();
-  setConnected(false);
-  curSuck = 0; curVibe = 0;
-  updateSliders();
+
+function bleOff() {
+  setBle(false);
+  if (bleTimer) { clearInterval(bleTimer); bleTimer = null; }
+  char = null;
 }
-function onDisconnect() {
-  setConnected(false);
-  if (timer) { clearInterval(timer); timer = null; }
+
+function setBle(v) {
+  document.getElementById('dotBle').className = 'dot' + (v?' on':'');
+  document.getElementById('txtBle').textContent = v ? (device?.name||'蓝牙已连接') : '蓝牙未连接';
+  document.getElementById('bleBtn').textContent = v ? '断开蓝牙' : '连接喵喜';
+  document.getElementById('stopBtn').disabled = !v;
+  document.querySelectorAll('input[type=range]').forEach(s=>s.disabled=!v);
+  document.querySelectorAll('.preset-btn').forEach(p=>p.disabled=!v);
 }
-function setConnected(v) {
-  const pill = document.getElementById('statusPill');
-  const dot = document.getElementById('dot');
-  const statusText = document.getElementById('statusText');
-  const connectBtn = document.getElementById('connectBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const sliders = document.querySelectorAll('input[type=range]');
-  const presets = document.querySelectorAll('.preset-btn');
-  if (v) {
-    pill.classList.add('connected');
-    dot.classList.add('connected');
-    statusText.textContent = device?.name || '已连接';
-    connectBtn.textContent = '断开';
-    stopBtn.disabled = false;
-    sliders.forEach(s => s.disabled = false);
-    presets.forEach(p => p.disabled = false);
-  } else {
-    pill.classList.remove('connected');
-    dot.classList.remove('connected');
-    statusText.textContent = '未连接';
-    connectBtn.textContent = '连接喵喜';
-    stopBtn.disabled = true;
-    sliders.forEach(s => s.disabled = true);
-    presets.forEach(p => p.disabled = true);
-  }
+
+function startBleLoop() {
+  if (bleTimer) clearInterval(bleTimer);
+  bleTimer = setInterval(() => {
+    if (char && (curSuck||curVibe)) send(cmdBytes(curSuck,curVibe));
+  }, 250);
 }
-async function stopAll() {
-  curSuck = 0; curVibe = 0;
-  await send(buildStop());
-  updateSliders();
+
+async function send(data) {
+  if (!char) return;
+  try { await char.writeValueWithoutResponse(data); } catch(e) {}
 }
+
+// ── WebSocket（接哥哥的指令）──
+function connectWs() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ role: 'toy' }));
+    setWs(true);
+    log('等待哥哥连接…');
+  };
+  ws.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if (d.type === 'cmd') {
+      curSuck = d.suck ?? curSuck;
+      curVibe = d.vibe ?? curVibe;
+      updateSliders();
+      if (curSuck===0 && curVibe===0) send(stopBytes());
+    }
+  };
+  ws.onclose = () => { setWs(false); log('服务器断开'); };
+  ws.onerror = () => { setWs(false); log('服务器错误'); };
+}
+
+function setWs(v) {
+  document.getElementById('dotWs').className = 'dot' + (v?' on':'');
+  document.getElementById('txtWs').textContent = v ? '服务器已连接' : '服务器未连接';
+}
+
+// ── 滑块 ──
+function updateSliderStyle(el, val) { el.style.setProperty('--pct', val+'%'); }
 function updateSliders() {
   const ss = document.getElementById('suckSlider');
   const vs = document.getElementById('vibeSlider');
   ss.value = curSuck; vs.value = curVibe;
-  updateSliderStyle(ss, curSuck);
-  updateSliderStyle(vs, curVibe);
+  updateSliderStyle(ss, curSuck); updateSliderStyle(vs, curVibe);
   document.getElementById('suckVal').textContent = curSuck;
   document.getElementById('vibeVal').textContent = curVibe;
 }
-function updateSliderStyle(el, val) {
-  el.style.setProperty('--pct', val + '%');
-}
-function preset(suck, vibe) {
-  curSuck = suck; curVibe = vibe;
-  updateSliders();
-  send(buildCmd(curSuck, curVibe));
-}
-const suckSlider = document.getElementById('suckSlider');
-const vibeSlider = document.getElementById('vibeSlider');
-suckSlider.addEventListener('input', () => {
-  curSuck = parseInt(suckSlider.value);
-  updateSliderStyle(suckSlider, curSuck);
+
+document.getElementById('suckSlider').addEventListener('input', function() {
+  curSuck = +this.value; updateSliderStyle(this, curSuck);
   document.getElementById('suckVal').textContent = curSuck;
-  send(buildCmd(curSuck, curVibe));
+  send(cmdBytes(curSuck, curVibe));
 });
-vibeSlider.addEventListener('input', () => {
-  curVibe = parseInt(vibeSlider.value);
-  updateSliderStyle(vibeSlider, curVibe);
+document.getElementById('vibeSlider').addEventListener('input', function() {
+  curVibe = +this.value; updateSliderStyle(this, curVibe);
   document.getElementById('vibeVal').textContent = curVibe;
-  send(buildCmd(curSuck, curVibe));
+  send(cmdBytes(curSuck, curVibe));
 });
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) stopAll();
-});
+
+function preset(s,v) { curSuck=s; curVibe=v; updateSliders(); send(cmdBytes(s,v)); }
+async function stopAll() { curSuck=0; curVibe=0; updateSliders(); await send(stopBytes()); }
+
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopAll(); });
 </script>
 </body>
 </html>
