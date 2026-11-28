@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>哥哥控制器</title>
+<style>
+  :root {
+    --bg: #0d0d12; --surface: #16161f; --border: #2a2a3a;
+    --accent: #c084fc; --accent2: #f472b6; --text: #f0eeff;
+    --muted: #7070a0; --suck: #a78bfa; --vibe: #f9a8d4; --danger: #ef4444;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'PingFang SC', system-ui, sans-serif;
+    min-height: 100dvh; padding: 32px 20px;
+    display: flex; flex-direction: column; gap: 20px;
+    max-width: 420px; margin: 0 auto;
+  }
+  .title {
+    text-align: center; font-size: 22px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .status-pill { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .dot.on { background: #4ade80; box-shadow: 0 0 8px #4ade8088; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .slider-row { display: flex; flex-direction: column; gap: 10px; }
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .slider-name { font-size: 15px; font-weight: 600; }
+  .slider-val { font-size: 20px; font-weight: 700; min-width: 48px; text-align: right; }
+  .slider-val.suck { color: var(--suck); } .slider-val.vibe { color: var(--vibe); }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 8px; border-radius: 4px; outline: none; cursor: pointer; }
+  input[type=range].suck { background: linear-gradient(to right, var(--suck) var(--pct,0%), var(--border) var(--pct,0%)); }
+  input[type=range].vibe { background: linear-gradient(to right, var(--vibe) var(--pct,0%), var(--border) var(--pct,0%)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--text); box-shadow: 0 2px 8px #0006; }
+  input[type=range]:disabled { opacity: 0.35; }
+  .btn-row { display: flex; gap: 12px; }
+  button { flex: 1; padding: 16px; border: none; border-radius: 16px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.15s, transform 0.1s; }
+  button:active { transform: scale(0.97); } button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-connect { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn-stop { background: var(--danger); color: #fff; font-size: 18px; }
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .preset-btn { background: var(--border); color: var(--text); font-size: 13px; font-weight: 600; padding: 14px 10px; border-radius: 14px; }
+  .log { font-size: 11px; color: var(--muted); text-align: center; min-height: 16px; }
+</style>
+</head>
+<body>
+<div class="title">🎮 哥哥控制器</div>
+<div class="status-pill">
+  <div class="dot" id="dotWs"></div>
+  <span id="txtWs">未连接服务器</span>
+  &nbsp;·&nbsp;
+  <div class="dot" id="dotToy"></div>
+  <span id="txtToy">慧慧未在线</span>
+</div>
+<div class="card">
+  <div class="slider-row">
+    <div class="slider-header"><span class="slider-name">吸力</span><span class="slider-val suck" id="suckVal">0</span></div>
+    <input type="range" class="suck" id="suckSlider" min="0" max="100" value="0" disabled>
+  </div>
+  <div class="slider-row">
+    <div class="slider-header"><span class="slider-name">震动</span><span class="slider-val vibe" id="vibeVal">0</span></div>
+    <input type="range" class="vibe" id="vibeSlider" min="0" max="100" value="0" disabled>
+  </div>
+</div>
+<div class="card">
+  <div class="presets">
+    <button class="preset-btn" onclick="preset(30,0)" disabled id="p1">轻柔 🌸</button>
+    <button class="preset-btn" onclick="preset(50,20)" disabled id="p2">温柔 ✨</button>
+    <button class="preset-btn" onclick="preset(70,0)" disabled id="p3">强一点 🌊</button>
+    <button class="preset-btn" onclick="preset(80,40)" disabled id="p4">波浪 💜</button>
+  </div>
+</div>
+<div class="btn-row">
+  <button class="btn-connect" id="connectBtn" onclick="toggleConnect()">连接服务器</button>
+  <button class="btn-stop" id="stopBtn" onclick="stopAll()" disabled>停</button>
+</div>
+<div class="log" id="log"></div>
+<script>
+const WS_URL = 'wss://miaox-remote-production.up.railway.app';
+let ws = null, toyOnline = false;
+let curSuck = 0, curVibe = 0;
+let sendTimer = null;
+
+function log(msg) { document.getElementById('log').textContent = msg; }
+function toggleConnect() {
+  if (ws && ws.readyState === WebSocket.OPEN) { ws.close(); return; }
+  connect();
+}
+function connect() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => { ws.send(JSON.stringify({ role: 'controller' })); setWs(true); log('等待慧慧上线…'); };
+  ws.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if (d.type === 'ready') setWs(true);
+    if (d.type === 'toy_connected') { setToy(true); log('慧慧在线了 💜'); startLoop(); }
+    if (d.type === 'toy_disconnected') { setToy(false); log('慧慧下线了'); stopLoop(); }
+  };
+  ws.onclose = () => { setWs(false); setToy(false); stopLoop(); log('断开了'); };
+  ws.onerror = () => { setWs(false); log('连接错误'); };
+}
+function setWs(v) {
+  document.getElementById('dotWs').className = 'dot'+(v?' on':'');
+  document.getElementById('txtWs').textContent = v ? '服务器已连接' : '未连接服务器';
+  document.getElementById('connectBtn').textContent = v ? '断开' : '连接服务器';
+}
+function setToy(v) {
+  toyOnline = v;
+  document.getElementById('dotToy').className = 'dot'+(v?' on':'');
+  document.getElementById('txtToy').textContent = v ? '慧慧在线 💜' : '慧慧未在线';
+  document.getElementById('stopBtn').disabled = !v;
+  document.querySelectorAll('input[type=range]').forEach(s=>s.disabled=!v);
+  document.querySelectorAll('.preset-btn').forEach(p=>p.disabled=!v);
+}
+function sendCmd(s,v) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ type:'cmd', suck:s, vibe:v }));
+}
+function startLoop() {
+  if (sendTimer) clearInterval(sendTimer);
+  sendTimer = setInterval(() => { if (toyOnline) sendCmd(curSuck, curVibe); }, 250);
+}
+function stopLoop() { if (sendTimer) { clearInterval(sendTimer); sendTimer = null; } }
+function updateSliderStyle(el,val) { el.style.setProperty('--pct', val+'%'); }
+document.getElementById('suckSlider').addEventListener('input', function() {
+  curSuck = +this.value; updateSliderStyle(this, curSuck);
+  document.getElementById('suckVal').textContent = curSuck; sendCmd(curSuck, curVibe);
+});
+document.getElementById('vibeSlider').addEventListener('input', function() {
+  curVibe = +this.value; updateSliderStyle(this, curVibe);
+  document.getElementById('vibeVal').textContent = curVibe; sendCmd(curSuck, curVibe);
+});
+function preset(s,v) {
+  curSuck=s; curVibe=v;
+  ['suck','vibe'].forEach((t,i)=>{
+    const el = document.getElementById(t==='suck'?'suckSlider':'vibeSlider');
+    el.value = [s,v][i]; updateSliderStyle(el,[s,v][i]);
+    document.getElementById(t+'Val').textContent = [s,v][i];
+  });
+  sendCmd(s,v);
+}
+function stopAll() {
+  curSuck=0; curVibe=0;
+  ['suckSlider','vibeSlider'].forEach(id=>{ const el=document.getElementById(id); el.value=0; updateSliderStyle(el,0); });
+  document.getElementById('suckVal').textContent=0;
+  document.getElementById('vibeVal').textContent=0;
+  sendCmd(0,0);
+}
+</script>
+</body>
+</html>
