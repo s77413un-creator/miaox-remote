@@ -1,4 +1,3 @@
-
 const http = require('http');
 const WebSocket = require('ws');
 const fs = require('fs');
@@ -8,9 +7,26 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 3000;
 const CONTROL_TOKEN = process.env.CONTROL_TOKEN;
 
+const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
+const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
+
+const RESOURCE_METADATA_URL =
+  'https://miaox-remote-production.up.railway.app/.well-known/oauth-protected-resource';
+
+const AUTH0_ISSUER = AUTH0_DOMAIN
+  ? `https://${AUTH0_DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, '')}/`
+  : null;
+
+const REQUIRED_SCOPES = {
+  get_status: 'read:status',
+  set_controls: 'control:device',
+  stop: 'stop:device'
+};
+
 let controller = null;
 let toy = null;
 let mcpStopTimer = null;
+let auth0ClientPromise = null;
 
 function send(ws, data) {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -39,6 +55,7 @@ function stopToy() {
   }
 }
 
+// 原有 WebSocket 控制端认证继续使用 CONTROL_TOKEN
 function tokenMatches(req) {
   if (!CONTROL_TOKEN) return false;
 
@@ -58,39 +75,206 @@ function tokenMatches(req) {
     crypto.timingSafeEqual(a, b);
 }
 
+// 初始化 Auth0 验证客户端
+async function getAuth0Client() {
+  if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
+    throw new Error('Auth0 environment variables are missing');
+  }
+
+  if (!auth0ClientPromise) {
+    auth0ClientPromise = import('@auth0/auth0-api-js').then(
+      ({ ApiClient }) => new ApiClient({
+        domain: AUTH0_DOMAIN,
+        audience: AUTH0_AUDIENCE
+      })
+    );
+  }
+
+  return auth0ClientPromise;
+}
+
+// 从已验证的令牌中读取权限
+function getTokenScopes(claims) {
+  const scopes = new Set();
+
+  if (typeof claims.scope === 'string') {
+    claims.scope.split(' ').filter(Boolean).forEach(
+      scope => scopes.add(scope)
+    );
+  }
+
+  if (Array.isArray(claims.permissions)) {
+    claims.permissions.forEach(scope => {
+      if (typeof scope === 'string') scopes.add(scope);
+    });
+  }
+
+  return scopes;
+}
+
+// 验证 Auth0 Bearer Token
+async function verifyAuth0Token(req) {
+  const authorization = req.headers.authorization || '';
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+
+  if (!match) {
+    return { ok: false, reason: 'missing_token' };
+  }
+
+  try {
+    const client = await getAuth0Client();
+
+    const claims = await client.verifyAccessToken({
+      accessToken: match[1],
+      requiredClaims: ['sub']
+    });
+
+    if (!claims || typeof claims.sub !== 'string') {
+      return { ok: false, reason: 'invalid_token' };
+    }
+
+    return {
+      ok: true,
+      claims,
+      scopes: getTokenScopes(claims)
+    };
+  } catch (err) {
+    console.error('Auth0 token verification failed:', err.message);
+
+    return { ok: false, reason: 'invalid_token' };
+  }
+}
+
+// 返回 OAuth 认证挑战
+function sendAuthChallenge(res, status, reason, requiredScope) {
+  let challenge = 'Bearer';
+
+  if (reason === 'invalid_token') {
+    challenge += ' error="invalid_token"';
+  }
+
+  if (reason === 'insufficient_scope' && requiredScope) {
+    challenge +=
+      ` error="insufficient_scope", scope="${requiredScope}"`;
+  }
+
+  challenge += `, resource_metadata="${RESOURCE_METADATA_URL}"`;
+
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    'WWW-Authenticate': challenge,
+    'Cache-Control': 'no-store'
+  });
+
+  res.end(JSON.stringify({
+    error: reason
+  }));
+}
+
+// OAuth Protected Resource Metadata
+function handleResourceMetadata(res) {
+  if (!AUTH0_ISSUER || !AUTH0_AUDIENCE) {
+    res.writeHead(503, {
+      'Content-Type': 'application/json'
+    });
+    res.end(JSON.stringify({
+      error: 'OAuth configuration is incomplete'
+    }));
+    return;
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=3600'
+  });
+
+  res.end(JSON.stringify({
+    resource: AUTH0_AUDIENCE,
+    authorization_servers: [AUTH0_ISSUER],
+    scopes_supported: [
+      'read:status',
+      'control:device',
+      'stop:device'
+    ],
+    bearer_methods_supported: ['header']
+  }));
+}
+
+// 检查 JSON-RPC 请求中是否调用了需要权限的工具
+function getRequiredScope(parsedBody) {
+  const requests = Array.isArray(parsedBody)
+    ? parsedBody
+    : [parsedBody];
+
+  for (const request of requests) {
+    if (
+      request &&
+      request.method === 'tools/call' &&
+      request.params &&
+      typeof request.params.name === 'string'
+    ) {
+      const requiredScope =
+        REQUIRED_SCOPES[request.params.name];
+
+      if (requiredScope) return requiredScope;
+    }
+  }
+
+  return null;
+}
+
 async function handleMcp(req, res) {
-  if (!CONTROL_TOKEN) {
-    res.writeHead(503);
-    res.end('Server authentication is not configured');
-    return;
-  }
-
-  if (!tokenMatches(req)) {
-    res.writeHead(401);
-    res.end('Unauthorized');
-    return;
-  }
-
   if (req.method !== 'POST') {
     res.writeHead(405, { Allow: 'POST' });
     res.end('Method not allowed');
     return;
   }
 
+  if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
+    res.writeHead(503);
+    res.end('OAuth authentication is not configured');
+    return;
+  }
+
+  // 先验证令牌，再处理 MCP 请求
+  const auth = await verifyAuth0Token(req);
+
+  if (!auth.ok) {
+    const status = auth.reason === 'missing_token' ? 401 : 401;
+    sendAuthChallenge(res, status, auth.reason);
+    return;
+  }
+
   let body = '';
+  let bodyBytes = 0;
 
   try {
     for await (const chunk of req) {
-      body += chunk;
+      bodyBytes += Buffer.byteLength(chunk);
 
-      if (body.length > 1024 * 1024) {
+      if (bodyBytes > 1024 * 1024) {
         res.writeHead(413);
         res.end('Request too large');
         return;
       }
+
+      body += chunk.toString();
     }
 
     const parsedBody = JSON.parse(body);
+
+    // 根据工具名称检查对应权限
+    const requiredScope = getRequiredScope(parsedBody);
+
+    if (requiredScope && !auth.scopes.has(requiredScope)) {
+      sendAuthChallenge(
+        res,
+        403,
+        'insufficient_scope',
+        requiredScope
+      );
+      return;
+    }
 
     const { McpServer } = await import(
       '@modelcontextprotocol/sdk/server/mcp.js'
@@ -110,16 +294,19 @@ async function handleMcp(req, res) {
     mcpServer.registerTool(
       'get_status',
       {
-        description: 'Check whether the BLE toy and controller are connected.',
+        description:
+          'Check whether the BLE toy and controller are connected.',
         inputSchema: {}
       },
       async () => ({
         content: [{
           type: 'text',
           text: JSON.stringify({
-            toy_connected: !!toy && toy.readyState === WebSocket.OPEN,
+            toy_connected:
+              !!toy && toy.readyState === WebSocket.OPEN,
             controller_connected:
-              !!controller && controller.readyState === WebSocket.OPEN
+              !!controller &&
+              controller.readyState === WebSocket.OPEN
           })
         }]
       })
@@ -161,7 +348,8 @@ async function handleMcp(req, res) {
         return {
           content: [{
             type: 'text',
-            text: `Command sent. Automatic stop in ${duration_seconds} seconds.`
+            text:
+              `Command sent. Automatic stop in ${duration_seconds} seconds.`
           }]
         };
       }
@@ -202,9 +390,10 @@ async function handleMcp(req, res) {
     console.error('MCP error:', err);
 
     if (!res.headersSent) {
-      res.writeHead(500, {
+      res.writeHead(400, {
         'Content-Type': 'application/json'
       });
+
       res.end(JSON.stringify({
         error: 'MCP request failed'
       }));
@@ -213,7 +402,25 @@ async function handleMcp(req, res) {
 }
 
 const server = http.createServer((req, res) => {
-  const pathname = new URL(req.url, 'http://localhost').pathname;
+  const pathname = new URL(
+    req.url,
+    'http://localhost'
+  ).pathname;
+
+  // OAuth 元数据发现：根路径和 /mcp 对应路径
+  if (
+    pathname === '/.well-known/oauth-protected-resource' ||
+    pathname === '/.well-known/oauth-protected-resource/mcp'
+  ) {
+    if (req.method !== 'GET') {
+      res.writeHead(405, { Allow: 'GET' });
+      res.end('Method not allowed');
+      return;
+    }
+
+    handleResourceMetadata(res);
+    return;
+  }
 
   if (pathname === '/mcp') {
     handleMcp(req, res);
@@ -360,6 +567,10 @@ wss.on('connection', (ws) => {
 server.listen(PORT, () => {
   if (!CONTROL_TOKEN) {
     console.error('WARNING: CONTROL_TOKEN is not configured.');
+  }
+
+  if (!AUTH0_DOMAIN || !AUTH0_AUDIENCE) {
+    console.error('WARNING: Auth0 environment variables are missing.');
   }
 
   console.log('Server running on port', PORT);
