@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -5,112 +6,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>喵喜遥控</title>
 <style>
-  :root {
-    --bg: #0d0d12;
-    --surface: #16161f;
-    --border: #2a2a3a;
-    --accent: #c084fc;
-    --accent2: #f472b6;
-    --text: #f0eeff;
-    --muted: #7070a0;
-    --suck: #a78bfa;
-    --vibe: #f9a8d4;
-    --danger: #ef4444;
-    color-scheme: dark;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'PingFang SC', system-ui, sans-serif;
-    min-height: 100dvh;
-    padding: 32px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-  .title {
-    text-align: center;
-    font-size: 22px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .status-pill {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-  }
-  .dot.on { background: #4ade80; box-shadow: 0 0 8px #4ade8088; }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .slider-row { display: flex; flex-direction: column; gap: 10px; }
-  .slider-header { display: flex; justify-content: space-between; align-items: baseline; }
-  .slider-name { font-size: 15px; font-weight: 600; }
-  .slider-val { font-size: 20px; font-weight: 700; min-width: 48px; text-align: right; }
-  .slider-val.suck { color: var(--suck); }
-  .slider-val.vibe { color: var(--vibe); }
-  input[type=range] {
-    -webkit-appearance: none;
-    width: 100%; height: 8px;
-    border-radius: 4px; outline: none; cursor: pointer;
-  }
-  input[type=range].suck {
-    background: linear-gradient(to right, var(--suck) var(--pct,0%), var(--border) var(--pct,0%));
-  }
-  input[type=range].vibe {
-    background: linear-gradient(to right, var(--vibe) var(--pct,0%), var(--border) var(--pct,0%));
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: var(--text);
-    box-shadow: 0 2px 8px #0006;
-  }
-  .btn-row { display: flex; gap: 12px; }
-  button {
-    flex: 1; padding: 16px; border: none;
-    border-radius: 16px; font-size: 15px; font-weight: 700;
-    cursor: pointer; font-family: inherit;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  button:active { transform: scale(0.97); }
-  button:disabled { opacity: 0.35; cursor: not-allowed; }
-  .btn-ble { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
-  .btn-stop { background: var(--danger); color: #fff; font-size: 18px; }
-  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .preset-btn {
-    background: var(--border); color: var(--text);
-    font-size: 13px; font-weight: 600;
-    padding: 14px 10px; border-radius: 14px;
-  }
-  .log {
-    font-size: 11px; color: var(--muted);
-    text-align: center; min-height: 16px;
-  }
+:root {
+  --bg:#0d0d12; --surface:#16161f; --border:#2a2a3a;
+  --accent:#c084fc; --accent2:#f472b6; --text:#f0eeff;
+  --muted:#7070a0; --suck:#a78bfa; --vibe:#f9a8d4;
+  --danger:#ef4444; color-scheme:dark;
+}
+* {box-sizing:border-box;margin:0;padding:0}
+body {
+  background:var(--bg);color:var(--text);
+  font-family:'PingFang SC',system-ui,sans-serif;
+  min-height:100dvh;padding:32px 20px;
+  display:flex;flex-direction:column;gap:20px;
+  max-width:420px;margin:0 auto;
+}
+.title {
+  text-align:center;font-size:22px;font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.status-pill {
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;font-size:13px;color:var(--muted);
+}
+.dot {
+  width:8px;height:8px;border-radius:50%;
+  background:var(--muted);flex-shrink:0;
+}
+.dot.on {background:#4ade80;box-shadow:0 0 8px #4ade8088}
+.card {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:20px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.slider-row {display:flex;flex-direction:column;gap:10px}
+.slider-header {
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.slider-name {font-size:15px;font-weight:600}
+.slider-val {
+  font-size:20px;font-weight:700;
+  min-width:48px;text-align:right;
+}
+.slider-val.suck {color:var(--suck)}
+.slider-val.vibe {color:var(--vibe)}
+input[type=range] {
+  -webkit-appearance:none;width:100%;height:8px;
+  border-radius:4px;outline:none;cursor:pointer;
+}
+input[type=range].suck {
+  background:linear-gradient(to right,var(--suck) var(--pct,0%),var(--border) var(--pct,0%));
+}
+input[type=range].vibe {
+  background:linear-gradient(to right,var(--vibe) var(--pct,0%),var(--border) var(--pct,0%));
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none;width:24px;height:24px;
+  border-radius:50%;background:var(--text);box-shadow:0 2px 8px #0006;
+}
+.btn-row {display:flex;gap:12px}
+button {
+  flex:1;padding:16px;border:none;border-radius:16px;
+  font-size:15px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:opacity .15s,transform .1s;
+}
+button:active {transform:scale(.97)}
+button:disabled {opacity:.35;cursor:not-allowed}
+.btn-ble {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+}
+.btn-stop {background:var(--danger);color:#fff;font-size:18px}
+.presets {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preset-btn {
+  background:var(--border);color:var(--text);
+  font-size:13px;font-weight:600;padding:14px 10px;border-radius:14px;
+}
+.log {font-size:11px;color:var(--muted);text-align:center;min-height:16px}
 </style>
 </head>
 <body>
+
 <div class="title">🐱 喵喜遥控</div>
 
 <div class="status-pill">
@@ -127,23 +103,26 @@
       <span class="slider-name">吸力</span>
       <span class="slider-val suck" id="suckVal">0</span>
     </div>
-    <input type="range" class="suck" id="suckSlider" min="0" max="100" value="0" disabled>
+    <input type="range" class="suck" id="suckSlider"
+      min="0" max="100" value="0" disabled>
   </div>
+
   <div class="slider-row">
     <div class="slider-header">
       <span class="slider-name">震动</span>
       <span class="slider-val vibe" id="vibeVal">0</span>
     </div>
-    <input type="range" class="vibe" id="vibeSlider" min="0" max="100" value="0" disabled>
+    <input type="range" class="vibe" id="vibeSlider"
+      min="0" max="100" value="0" disabled>
   </div>
 </div>
 
 <div class="card">
   <div class="presets">
-    <button class="preset-btn" onclick="preset(30,0)" disabled id="p1">轻柔 🌸</button>
-    <button class="preset-btn" onclick="preset(50,20)" disabled id="p2">温柔 ✨</button>
-    <button class="preset-btn" onclick="preset(70,0)" disabled id="p3">强一点 🌊</button>
-    <button class="preset-btn" onclick="preset(80,40)" disabled id="p4">波浪 💜</button>
+    <button class="preset-btn" onclick="preset(30,0)" disabled>轻柔 🌸</button>
+    <button class="preset-btn" onclick="preset(50,20)" disabled>温柔 ✨</button>
+    <button class="preset-btn" onclick="preset(70,0)" disabled>强一点 🌊</button>
+    <button class="preset-btn" onclick="preset(80,40)" disabled>波浪 💜</button>
   </div>
 </div>
 
@@ -156,121 +135,306 @@
 
 <script>
 const SERVICE_UUID = '0000dddd-0000-1000-8000-00805f9b34fb';
-const CHAR_UUID    = '0000ddd1-0000-1000-8000-00805f9b34fb';
+const CHAR_UUID = '0000ddd1-0000-1000-8000-00805f9b34fb';
 const WS_URL = 'wss://miaox-remote-production.up.railway.app';
 
-let device = null, char = null, bleTimer = null;
-let curSuck = 0, curVibe = 0;
+let device = null;
+let char = null;
+let bleTimer = null;
 let ws = null;
+let curSuck = 0;
+let curVibe = 0;
+let connecting = false;
 
-function log(msg) { document.getElementById('log').textContent = msg; }
-
-// ── 校验 & 指令 ──
-function cs(...b) { return b.reduce((a,v)=>a+v,0) & 0xFF; }
-function cmdBytes(s,v) {
-  return new Uint8Array([0xAA,0x08,0x03,s,v,0x03, cs(0xAA,0x08,0x03,s,v,0x03)]);
+function log(msg) {
+  document.getElementById('log').textContent = msg;
 }
+
+function setWs(connected) {
+  document.getElementById('dotWs').className =
+    'dot' + (connected ? ' on' : '');
+  document.getElementById('txtWs').textContent =
+    connected ? '服务器已连接' : '服务器未连接';
+}
+
+function setBle(connected) {
+  document.getElementById('dotBle').className =
+    'dot' + (connected ? ' on' : '');
+  document.getElementById('txtBle').textContent =
+    connected ? (device?.name || '蓝牙已连接') : '蓝牙未连接';
+
+  document.getElementById('bleBtn').textContent =
+    connected ? '断开蓝牙' : '连接喵喜';
+
+  document.getElementById('stopBtn').disabled = !connected;
+
+  document.querySelectorAll('input[type=range]').forEach(el => {
+    el.disabled = !connected;
+  });
+
+  document.querySelectorAll('.preset-btn').forEach(el => {
+    el.disabled = !connected;
+  });
+}
+
+// 指令校验与数据格式：保留原版
+function cs(...bytes) {
+  return bytes.reduce((a, v) => a + v, 0) & 0xFF;
+}
+
+function cmdBytes(s, v) {
+  return new Uint8Array([
+    0xAA, 0x08, 0x03, s, v, 0x03,
+    cs(0xAA, 0x08, 0x03, s, v, 0x03)
+  ]);
+}
+
 function stopBytes() {
-  return new Uint8Array([0xAA,0x0F,0x02,0x00,0x00, cs(0xAA,0x0F,0x02,0x00,0x00)]);
+  return new Uint8Array([
+    0xAA, 0x0F, 0x02, 0x00, 0x00,
+    cs(0xAA, 0x0F, 0x02, 0x00, 0x00)
+  ]);
 }
 
-// ── 蓝牙 ──
+// 蓝牙连接
 async function toggleBle() {
-  if (device && device.gatt.connected) { bleOff(); return; }
+  if (connecting) return;
+
+  if (device && device.gatt && device.gatt.connected) {
+    await stopAll();
+    device.gatt.disconnect();
+    bleOff();
+    return;
+  }
+
+  if (!navigator.bluetooth) {
+    log('请使用支持 Web Bluetooth 的 Chrome 浏览器');
+    return;
+  }
+
+  connecting = true;
+  document.getElementById('bleBtn').disabled = true;
+
   try {
     device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
       optionalServices: [SERVICE_UUID]
     });
+
     device.addEventListener('gattserverdisconnected', bleOff);
+
     const gatt = await device.gatt.connect();
-    const svc  = await gatt.getPrimaryService(SERVICE_UUID);
-    char = await svc.getCharacteristic(CHAR_UUID);
+    const service = await gatt.getPrimaryService(SERVICE_UUID);
+    char = await service.getCharacteristic(CHAR_UUID);
+
+    curSuck = 0;
+    curVibe = 0;
+    updateSliders();
     setBle(true);
     startBleLoop();
+
     connectWs();
-  } catch(e) { log('蓝牙错误：' + e.message); setBle(false); }
+    log('蓝牙已连接');
+  } catch (e) {
+    log('蓝牙错误：' + e.message);
+    setBle(false);
+  } finally {
+    connecting = false;
+    document.getElementById('bleBtn').disabled = false;
+  }
 }
 
 function bleOff() {
-  setBle(false);
-  if (bleTimer) { clearInterval(bleTimer); bleTimer = null; }
+  if (bleTimer) {
+    clearInterval(bleTimer);
+    bleTimer = null;
+  }
+
   char = null;
+  curSuck = 0;
+  curVibe = 0;
+
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+
+  updateSliders();
+  setBle(false);
+  setWs(false);
+  log('蓝牙已断开');
 }
 
-function setBle(v) {
-  document.getElementById('dotBle').className = 'dot' + (v?' on':'');
-  document.getElementById('txtBle').textContent = v ? (device?.name||'蓝牙已连接') : '蓝牙未连接';
-  document.getElementById('bleBtn').textContent = v ? '断开蓝牙' : '连接喵喜';
-  document.getElementById('stopBtn').disabled = !v;
-  document.querySelectorAll('input[type=range]').forEach(s=>s.disabled=!v);
-  document.querySelectorAll('.preset-btn').forEach(p=>p.disabled=!v);
-}
-
+// 蓝牙状态保持
 function startBleLoop() {
   if (bleTimer) clearInterval(bleTimer);
+
   bleTimer = setInterval(() => {
-    if (char && (curSuck||curVibe)) send(cmdBytes(curSuck,curVibe));
+    if (char && (curSuck || curVibe)) {
+      send(cmdBytes(curSuck, curVibe));
+    }
   }, 250);
 }
 
 async function send(data) {
   if (!char) return;
-  try { await char.writeValueWithoutResponse(data); } catch(e) {}
+
+  try {
+    await char.writeValueWithoutResponse(data);
+  } catch (e) {
+    log('蓝牙发送失败：' + e.message);
+  }
 }
 
-// ── WebSocket（接哥哥的指令）──
+// 获取令牌：只保存在当前标签页会话
+function getToken() {
+  let token = sessionStorage.getItem('CONTROL_TOKEN');
+
+  if (!token) {
+    token = prompt('请输入 Railway 中设置的 CONTROL_TOKEN');
+
+    if (!token || !token.trim()) {
+      log('未输入连接令牌');
+      return null;
+    }
+
+    token = token.trim();
+    sessionStorage.setItem('CONTROL_TOKEN', token);
+  }
+
+  return token;
+}
+
+// WebSocket 连接及身份验证
 function connectWs() {
-  ws = new WebSocket(WS_URL);
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ role: 'toy' }));
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+
+  const token = getToken();
+  if (!token) return;
+
+  try {
+    ws = new WebSocket(WS_URL);
+  } catch (e) {
+    log('无法创建服务器连接');
+    return;
+  }
+
+  const currentWs = ws;
+
+  currentWs.onopen = () => {
+    currentWs.send(JSON.stringify({
+      type: 'auth',
+      role: 'toy',
+      token: token
+    }));
+
     setWs(true);
-    log('等待哥哥连接…');
+    log('正在验证服务器连接…');
   };
-  ws.onmessage = (e) => {
-    const d = JSON.parse(e.data);
-    if (d.type === 'cmd') {
-      curSuck = d.suck ?? curSuck;
-      curVibe = d.vibe ?? curVibe;
+
+  currentWs.onmessage = (event) => {
+    let data;
+
+    try {
+      data = JSON.parse(event.data);
+    } catch (e) {
+      return;
+    }
+
+    if (data.type === 'cmd') {
+      const suck = Number(data.suck);
+      const vibe = Number(data.vibe);
+
+      if (
+        !Number.isInteger(suck) ||
+        !Number.isInteger(vibe) ||
+        suck < 0 || suck > 100 ||
+        vibe < 0 || vibe > 100
+      ) return;
+
+      curSuck = suck;
+      curVibe = vibe;
       updateSliders();
-      if (curSuck===0 && curVibe===0) send(stopBytes());
+
+      if (curSuck === 0 && curVibe === 0) {
+        send(stopBytes());
+      }
     }
   };
-  ws.onclose = () => { setWs(false); log('服务器断开'); };
-  ws.onerror = () => { setWs(false); log('服务器错误'); };
+
+  currentWs.onclose = () => {
+    if (ws !== currentWs) return;
+    setWs(false);
+    log('服务器断开');
+  };
+
+  currentWs.onerror = () => {
+    if (ws !== currentWs) return;
+    setWs(false);
+    log('服务器连接错误');
+  };
 }
 
-function setWs(v) {
-  document.getElementById('dotWs').className = 'dot' + (v?' on':'');
-  document.getElementById('txtWs').textContent = v ? '服务器已连接' : '服务器未连接';
+// 滑块显示
+function updateSliderStyle(el, value) {
+  el.style.setProperty('--pct', value + '%');
 }
 
-// ── 滑块 ──
-function updateSliderStyle(el, val) { el.style.setProperty('--pct', val+'%'); }
 function updateSliders() {
-  const ss = document.getElementById('suckSlider');
-  const vs = document.getElementById('vibeSlider');
-  ss.value = curSuck; vs.value = curVibe;
-  updateSliderStyle(ss, curSuck); updateSliderStyle(vs, curVibe);
+  const suckSlider = document.getElementById('suckSlider');
+  const vibeSlider = document.getElementById('vibeSlider');
+
+  suckSlider.value = curSuck;
+  vibeSlider.value = curVibe;
+
+  updateSliderStyle(suckSlider, curSuck);
+  updateSliderStyle(vibeSlider, curVibe);
+
   document.getElementById('suckVal').textContent = curSuck;
   document.getElementById('vibeVal').textContent = curVibe;
 }
 
 document.getElementById('suckSlider').addEventListener('input', function() {
-  curSuck = +this.value; updateSliderStyle(this, curSuck);
+  curSuck = Number(this.value);
+  updateSliderStyle(this, curSuck);
   document.getElementById('suckVal').textContent = curSuck;
   send(cmdBytes(curSuck, curVibe));
 });
+
 document.getElementById('vibeSlider').addEventListener('input', function() {
-  curVibe = +this.value; updateSliderStyle(this, curVibe);
+  curVibe = Number(this.value);
+  updateSliderStyle(this, curVibe);
   document.getElementById('vibeVal').textContent = curVibe;
   send(cmdBytes(curSuck, curVibe));
 });
 
-function preset(s,v) { curSuck=s; curVibe=v; updateSliders(); send(cmdBytes(s,v)); }
-async function stopAll() { curSuck=0; curVibe=0; updateSliders(); await send(stopBytes()); }
+function preset(s, v) {
+  curSuck = s;
+  curVibe = v;
+  updateSliders();
+  send(cmdBytes(s, v));
+}
 
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopAll(); });
+async function stopAll() {
+  curSuck = 0;
+  curVibe = 0;
+  updateSliders();
+  await send(stopBytes());
+}
+
+// 页面切到后台时停止
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopAll();
+});
+
+// 页面关闭时清理连接
+window.addEventListener('pagehide', () => {
+  if (bleTimer) clearInterval(bleTimer);
+  if (ws) ws.close();
+});
 </script>
 </body>
 </html>
